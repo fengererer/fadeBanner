@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>bannerDemo</title>
+    <meta charset="UTF-8">
+    <title>bannerDemo</title>
     <link rel="stylesheet" href="reset.css">
     <script src="jquery-1.11.3.js"></script>
     <style>
@@ -11,23 +11,31 @@
     }
     .banner ul{
         width: 100%;
-        height:960px;
         position: relative;
     }
     .banner ul li{
         display: none;
         width: 100%;
-        height:960px;
         position: absolute;
         top:0;
         left:0;
     }
-    .banner ul.build li{
-        height:auto;
+    .nybanner ul{
+        height:960px;
     }
-    .banner ul.build li img{
+    .nybanner ul li{
+        height:960px;
+    }
+    .sybanner ul li{
+        height:auto;
+        min-height:960px;
+        /*设置最小高度解决在初次加载时页面闪动，更好的解决办法是设置高度为height:100%,在sybanner中添加一张和图片尺寸大小一样的透明背景图用于撑开初始图片高度*/
+    }
+    .sybanner ul li img{
         width: 100%;
         height: auto;
+        min-height:960px;
+        /*设置最小高度解决在初次加载时页面闪动，更好的解决办法是设置高度为height:100%,在sybanner中添加一张和图片尺寸大小一样的透明背景图用于撑开初始图片高度*/
     }
     .banner ul li a{
         display: block;
@@ -82,7 +90,7 @@
 </head>
 <body>
     <h2>首页响应式缩放banner</h2>
-	<div class="banner sybanner">
+    <div class="banner sybanner">
         <div class="loader"></div>
         <ul>
             <li data-img="img/bd01.jpg">
@@ -154,7 +162,7 @@
                     if(n == 0){
                         self.slide();
                     }
-                    return;
+                    return null;
                 }
                 $(img).load(function(){
                     _this.attr("style","background:url("+src+") no-repeat center");
@@ -169,18 +177,20 @@
         Banner.prototype.slide = function(){
             var self = this;
             $(".loader").stop().fadeOut(1000);
-            for (var i = 0; i < self.listN; i++) {
-                self.pagination.append('<span class="span'+i+'"></span>');
-            };
-            self.pagination.find('span').eq(0).addClass("cur");
-            self.item.eq(0).addClass("cur").fadeIn(1000,this.callback);
+
             // 执行效果
             var sw = 1;
-            self.pagination.find('span').mouseover(function(){
-                sw = $(this).index();
-                self.myShow(sw);
-            });
-            
+            self.item.eq(0).addClass("cur").fadeIn(1000,this.callback);
+            if(self.pagination){
+                for (var i = 0; i < self.listN; i++) {
+                    self.pagination.append('<span class="span'+i+'"></span>');
+                };
+                self.pagination.find('span').eq(0).addClass("cur");
+                self.pagination.find('span').mouseover(function(){
+                    sw = $(this).index();
+                    self.myShow(sw);
+                });
+            }
             // 滑入停止动画，滑出开始动画
             self.bd.hover(function(){
                 if(myTime){
@@ -200,35 +210,40 @@
                 sw++;
                 if(sw == self.listN){sw = 0;}
             }, 5000);
-            //下一页
-            self.bdnext.on("click",function(){
-                sw = self.pagination.find('span.cur').index();
-                sw++;
-                if(sw == self.listN){sw = 0;}
-                self.myShow(sw);
-            })
-            //上一页
-            self.bdprev.on("click",function(){
-                sw = self.pagination.find('span.cur').index();
-                sw--;
-                if(sw == -1){sw = self.listN-1;}
-                self.myShow(sw);
-            })
+            if(self.bdnext && self.bdprev){
+                //下一页
+                self.bdnext.on("click",function(){
+                    sw = self.pagination.find('span.cur').index();
+                    sw++;
+                    if(sw == self.listN){sw = 0;}
+                    self.myShow(sw);
+                })
+                //上一页
+                self.bdprev.on("click",function(){
+                    sw = self.pagination.find('span.cur').index();
+                    sw--;
+                    if(sw == -1){sw = self.listN-1;}
+                    self.myShow(sw);
+                })
+            }
             //响应缩放式
             if(self.build){
                 self.item.each(function(i,el){
                     var img = new Image();
                     var bg = $(el).css("background-image");
-                    var url = bg.replace(/url\("?([^"]+)"?\)/, '$1');
-                    $(img).attr({"src":url});
-                    $(el).find('a').html($(img));
-                    $(el).parent("ul").addClass("build");
-                    $(img).on("load",function(){
-                        $(el).parent("ul").height($(el).height());
-                    })
-                    $(window).on("resize",function(){
-                        $(el).parent("ul").height($(el).height());
-                    })
+                    if(bg && typeof(bg) === "string"){
+                        var url = bg.replace(/url\("?([^"]+)"?\)/, '$1');
+                        $(img).attr({"src":url});
+                        $(el).find('a').html($(img));
+                        // 此处为在刷新加载时兼容ie8和360浏览器，代码重写了一遍，希有更好的解决办法
+                        $(img).on("load",function(){
+                            self.bd.find("ul").height($(el).height());
+                        })
+                        self.bd.find("ul").height($(el).height());
+                        $(window).on("resize",function(){
+                            self.bd.find("ul").height($(el).height());
+                        })
+                    }
                 })
             }
         }
