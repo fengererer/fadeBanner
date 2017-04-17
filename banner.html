@@ -11,13 +11,13 @@
     }
     .banner ul{
         width: 100%;
-        height:765px;
+        height:960px;
         position: relative;
     }
     .banner ul li{
         display: none;
         width: 100%;
-        height:765px;
+        height:960px;
         position: absolute;
         top:0;
         left:0;
@@ -123,119 +123,123 @@
     </div>
 <script>
     /*插件代码开始*/
-    function Banner(obj,buildbd,callback){
-        this.bd = obj,
-        this.item = obj.find('li'),
-        this.listN = obj.find('li').length,
-        this.pagination  = obj.find('.btns'),
-        this.bdprev = obj.find('.bdup'),
-        this.bdnext = obj.find('.bddn'),
-        this.build = buildbd || false,
-        this.callback = callback;
-    }
-    //初始化
-    Banner.prototype.init = function(){
-        var self = this;
-        self.setimg();
-    }
-    //图片调用
-    Banner.prototype.setimg = function() {
+        function Banner(obj,buildbd,callback){
+            this.bd = obj,
+            this.item = obj.find('li'),
+            this.listN = obj.find('li').length,
+            this.pagination  = obj.find('.btns'),
+            this.bdprev = obj.find('.bdup'),
+            this.bdnext = obj.find('.bddn'),
+            this.build = buildbd || false,
+            this.callback = callback;
+        }
+        //初始化
+        Banner.prototype.init = function(){
             var self = this;
-            var n = self.listN;
-            self.item.each(function(){
-            var _this = $(this),
-                src = _this.attr("data-img"),
-                img = new Image();
-            img.src = src;
-            //处理ff下会自动读取缓存图片
-            if(img.complete || img.width){
-                _this.attr("style","background:url("+src+") no-repeat center");
-                n -- ;
-                if(n == 0){
-                    self.slide();
+            self.setimg();
+        }
+        //图片调用
+        Banner.prototype.setimg = function() {
+                var self = this;
+                var n = self.listN;
+                self.item.each(function(){
+                var _this = $(this),
+                    src = _this.attr("data-img"),
+                    img = new Image();
+                img.src = src;
+                //处理ff下会自动读取缓存图片
+                if(img.complete || img.width){
+                    _this.attr("style","background:url("+src+") no-repeat center");
+                    n -- ;
+                    if(n == 0){
+                        self.slide();
+                    }
+                    return;
                 }
-                return;
-            }
-            $(img).load(function(){
-                _this.attr("style","background:url("+src+") no-repeat center");
-                n -- ;
-                if(n == 0){
-                    self.slide();
-                }
-            });
-        })
-    };
-    //执行图片切换
-    Banner.prototype.slide = function(){
-        var self = this;
-        $(".loader").stop().fadeOut(1000);
-        for (var i = 0; i < self.listN; i++) {
-            self.pagination.append('<span class="span'+i+'"></span>');
+                $(img).load(function(){
+                    _this.attr("style","background:url("+src+") no-repeat center");
+                    n -- ;
+                    if(n == 0){
+                        self.slide();
+                    }
+                });
+            })
         };
-        self.pagination.find('span').eq(0).addClass("cur");
-        self.item.eq(0).addClass("cur").fadeIn(1000,this.callback);
-        // 执行效果
-        var sw = 1;
-        self.pagination.find('span').mouseover(function(){
-            sw = $(this).index();
-            self.myShow(sw);
-        });
-        
-        // 滑入停止动画，滑出开始动画
-        self.bd.hover(function(){
-            if(myTime){
-               clearInterval(myTime);
-            }
-        },function(){
-            clearInterval(myTime);
-            myTime = setInterval(function(){
+        //执行图片切换
+        Banner.prototype.slide = function(){
+            var self = this;
+            $(".loader").stop().fadeOut(1000);
+            for (var i = 0; i < self.listN; i++) {
+                self.pagination.append('<span class="span'+i+'"></span>');
+            };
+            self.pagination.find('span').eq(0).addClass("cur");
+            self.item.eq(0).addClass("cur").fadeIn(1000,this.callback);
+            // 执行效果
+            var sw = 1;
+            self.pagination.find('span').mouseover(function(){
+                sw = $(this).index();
+                self.myShow(sw);
+            });
+            
+            // 滑入停止动画，滑出开始动画
+            self.bd.hover(function(){
+                if(myTime){
+                   clearInterval(myTime);
+                }
+            },function(){
+                clearInterval(myTime);
+                myTime = setInterval(function(){
+                    self.myShow(sw);
+                    sw++;
+                    if(sw == self.listN){sw = 0;}
+                }, 5000);
+            });
+            // 自动开始, 创建定时器
+            var myTime = setInterval(function(){
                 self.myShow(sw);
                 sw++;
                 if(sw == self.listN){sw = 0;}
             }, 5000);
-        });
-        // 自动开始, 创建定时器
-        var myTime = setInterval(function(){
-            self.myShow(sw);
-            sw++;
-            if(sw == self.listN){sw = 0;}
-        }, 5000);
-        //下一页
-        self.bdnext.on("click",function(){
-            sw = self.pagination.find('span.cur').index();
-            sw++;
-            if(sw == self.listN){sw = 0;}
-            self.myShow(sw);
-        })
-        //上一页
-        self.bdprev.on("click",function(){
-            sw = self.pagination.find('span.cur').index();
-            sw--;
-            if(sw == -1){sw = self.listN-1;}
-            self.myShow(sw);
-        })
-        //响应缩放式
-        if(self.build){
-            self.item.each(function(i,el){
-                var img = new Image();
-                var bg = $(el).css("background-image");
-                var url = bg.replace(/url\("?([^"]+)"?\)/, '$1');
-                $(img).attr({"src":url});
-                $(el).find('a').html($(img));
-                $(el).parent("ul").addClass("build").height($(el).height());
-                $(window).on("resize",function(){
-                    $(el).parent("ul").addClass("build").height($(el).height());
-                })
+            //下一页
+            self.bdnext.on("click",function(){
+                sw = self.pagination.find('span.cur').index();
+                sw++;
+                if(sw == self.listN){sw = 0;}
+                self.myShow(sw);
             })
+            //上一页
+            self.bdprev.on("click",function(){
+                sw = self.pagination.find('span.cur').index();
+                sw--;
+                if(sw == -1){sw = self.listN-1;}
+                self.myShow(sw);
+            })
+            //响应缩放式
+            if(self.build){
+                self.item.each(function(i,el){
+                    var img = new Image();
+                    var bg = $(el).css("background-image");
+                    var url = bg.replace(/url\("?([^"]+)"?\)/, '$1');
+                    $(img).attr({"src":url});
+                    $(el).find('a').html($(img));
+                    $(el).parent("ul").addClass("build");
+                    $(img).on("load",function(){
+                        $(el).parent("ul").height($(el).height());
+                    })
+                    $(window).on("resize",function(){
+                        $(el).parent("ul").height($(el).height());
+                    })
+                })
+            }
         }
-    }
-    //切换动画
-    Banner.prototype.myShow = function (i){
+        //切换动画
+        Banner.prototype.myShow = function (i){
             var self = this;
             self.pagination.find('span').eq(i).addClass("cur").siblings("span").removeClass("cur");
             self.item.eq(i).stop(true,true).addClass("cur").fadeIn(1000).siblings().stop(true,true).removeClass("cur").fadeOut(1000);
             this.callback();
         }
+
     /*插件代码结束*/
 
 
