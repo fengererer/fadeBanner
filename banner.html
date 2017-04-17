@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>bannerDemo</title>
+    <link rel="stylesheet" href="reset.css">
+    <script src="jquery-1.11.3.js"></script>
+    <style>
+    .banner{
+        position: relative;
+    }
+    .banner ul{
+        width: 100%;
+        height:765px;
+        position: relative;
+    }
+    .banner ul li{
+        display: none;
+        width: 100%;
+        height:765px;
+        position: absolute;
+        top:0;
+        left:0;
+    }
+    .banner ul.build li{
+        height:auto;
+    }
+    .banner ul.build li img{
+        width: 100%;
+    }
+    .banner ul li a{
+        display: block;
+    }
+    .banner .btns{
+        width: 100%;
+        text-align: center;
+        position: absolute;
+        bottom:20px;
+        left:0;
+    }
+    .banner .btns span{
+        display: inline-block;
+        *zoom:1;
+        cursor: pointer;
+        width: 12px;
+        height: 12px;
+        border-radius:50%;
+        background-color:#666;
+        margin:0 5px;
+    }
+    .banner .btns span:hover,.banner .btns span.cur{
+        background-color: #fff;
+    }
+    .banner .bdctrl .bdbtn{
+        display: block;
+        width: 30px;
+        height: 30px;
+        margin-top:-15px;
+        position: absolute;
+        top:50%;
+        transition:all 0.5s ease 0s;
+        border-radius: 50%;
+    }
+    .banner .bdctrl .bdbtn.bdup{
+        left:20px;
+        background:url(img/bdarr.png) no-repeat left top;
+    }
+    .banner .bdctrl .bdbtn.bdup:hover{
+        background:url(img/bdarr.png) no-repeat left bottom;
+    }
+    .banner .bdctrl .bdbtn.bddn{
+        right:20px;
+        background:url(img/bdarr.png) no-repeat right top;
+    }
+    .banner .bdctrl .bdbtn.bddn:hover{
+        background:url(img/bdarr.png) no-repeat right bottom;
+    }
+    </style>
+</head>
+<body>
+    <h2>首页响应式缩放banner</h2>
+	<div class="banner sybanner">
+        <div class="loader"></div>
+        <ul>
+            <li data-img="img/bd01.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+            <li data-img="img/bd02.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+            <li data-img="img/bd03.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+        </ul>
+        <div class="btns"></div>
+        <div class="bdctrl">
+            <a href="javascript:;" class="bdbtn bdup"></a>
+            <a href="javascript:;" class="bdbtn bddn"></a>
+        </div>
+    </div>
+    <h2>内页自适应切换banner</h2>
+    <div class="banner nybanner">
+        <div class="loader"></div>
+        <ul>
+            <li data-img="img/bd01.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+            <li data-img="img/bd02.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+            <li data-img="img/bd03.jpg">
+                <a href="#">&nbsp;</a>
+            </li>
+        </ul>
+        <div class="btns"></div>
+        <div class="bdctrl">
+            <a href="javascript:;" class="bdbtn bdup"></a>
+            <a href="javascript:;" class="bdbtn bddn"></a>
+        </div>
+    </div>
+<script>
+    /*插件代码开始*/
+    function Banner(obj,buildbd,callback){
+        this.bd = obj,
+        this.item = obj.find('li'),
+        this.listN = obj.find('li').length,
+        this.pagination  = obj.find('.btns'),
+        this.bdprev = obj.find('.bdup'),
+        this.bdnext = obj.find('.bddn'),
+        this.build = buildbd || false,
+        this.callback = callback;
+    }
+    //初始化
+    Banner.prototype.init = function(){
+        var self = this;
+        self.setimg();
+    }
+    //图片调用
+    Banner.prototype.setimg = function() {
+            var self = this;
+            var n = self.listN;
+            self.item.each(function(){
+            var _this = $(this),
+                src = _this.attr("data-img"),
+                img = new Image();
+            img.src = src;
+            //处理ff下会自动读取缓存图片
+            if(img.complete || img.width){
+                _this.attr("style","background:url("+src+") no-repeat center");
+                n -- ;
+                if(n == 0){
+                    self.slide();
+                }
+                return;
+            }
+            $(img).load(function(){
+                _this.attr("style","background:url("+src+") no-repeat center");
+                n -- ;
+                if(n == 0){
+                    self.slide();
+                }
+            });
+        })
+    };
+    //执行图片切换
+    Banner.prototype.slide = function(){
+        var self = this;
+        $(".loader").stop().fadeOut(1000);
+        for (var i = 0; i < self.listN; i++) {
+            self.pagination.append('<span class="span'+i+'"></span>');
+        };
+        self.pagination.find('span').eq(0).addClass("cur");
+        self.item.eq(0).addClass("cur").fadeIn(1000,this.callback);
+        // 执行效果
+        var sw = 1;
+        self.pagination.find('span').mouseover(function(){
+            sw = $(this).index();
+            self.myShow(sw);
+        });
+        
+        // 滑入停止动画，滑出开始动画
+        self.bd.hover(function(){
+            if(myTime){
+               clearInterval(myTime);
+            }
+        },function(){
+            clearInterval(myTime);
+            myTime = setInterval(function(){
+                self.myShow(sw);
+                sw++;
+                if(sw == self.listN){sw = 0;}
+            }, 5000);
+        });
+        // 自动开始, 创建定时器
+        var myTime = setInterval(function(){
+            self.myShow(sw);
+            sw++;
+            if(sw == self.listN){sw = 0;}
+        }, 5000);
+        //下一页
+        self.bdnext.on("click",function(){
+            sw = self.pagination.find('span.cur').index();
+            sw++;
+            if(sw == self.listN){sw = 0;}
+            self.myShow(sw);
+        })
+        //上一页
+        self.bdprev.on("click",function(){
+            sw = self.pagination.find('span.cur').index();
+            sw--;
+            if(sw == -1){sw = self.listN-1;}
+            self.myShow(sw);
+        })
+        //响应缩放式
+        if(self.build){
+            self.item.each(function(i,el){
+                var img = new Image();
+                var bg = $(el).css("background-image");
+                var url = bg.replace(/url\("?([^"]+)"?\)/, '$1');
+                $(img).attr({"src":url});
+                $(el).find('a').html($(img));
+                $(el).parent("ul").addClass("build").height($(el).height());
+                $(window).on("resize",function(){
+                    $(el).parent("ul").addClass("build").height($(el).height());
+                })
+            })
+        }
+    }
+    //切换动画
+    Banner.prototype.myShow = function (i){
+            var self = this;
+            self.pagination.find('span').eq(i).addClass("cur").siblings("span").removeClass("cur");
+            self.item.eq(i).stop(true,true).addClass("cur").fadeIn(1000).siblings().stop(true,true).removeClass("cur").fadeOut(1000);
+            this.callback();
+        }
+    /*插件代码结束*/
+
+
+    /**
+     * 渐入式banner切换效果使用
+     * Banner(obj,buildbd,callback)
+     * obj :容器
+     * buildbd : true-设置响应式缩放 false-设置自适应剪切
+     * callback : 切换过程回调函数
+     */
+    $(function(){
+        var sybd = new Banner($('.sybanner'),true,callback);
+        sybd.init();
+        var nybd = new Banner($('.nybanner'),false,callback);
+        nybd.init();
+    })
+    function callback (){
+        var current = $('.banner li.cur').index() + 1;
+        console.log("当前是第"+current+"张");
+    }
+</script>
+</body>
+</html>
